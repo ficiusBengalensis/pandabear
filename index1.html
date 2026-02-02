@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Be My Valentine ❤️</title>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #ff758c, #ff7eb3);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hidden { display: none; }
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  width: 360px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  animation: pop 0.6s ease;
+}
+
+@keyframes pop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+img {
+  width: 100%;
+  max-width: 240px;
+  margin: 15px auto;
+  display: block;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-top: 20px;
+}
+
+button {
+  padding: 12px 26px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#yesBtn { background: #4caf50; color: white; }
+#noBtn  { background: #f44336; color: white; }
+
+/* Continue */
+.continueBtn {
+ background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  color: white;
+}
+
+/* Share */
+.shareBtn {
+  background: #25D366;
+  color: white;
+  margin-top: 15px;
+}
+
+/* Happy hearts */
+.heart {
+  position: absolute;
+  bottom: -40px;
+  font-size: 24px;
+  animation: floatUp linear infinite;
+}
+@keyframes floatUp {
+  to { transform: translateY(-110vh) scale(1.4); opacity: 0; }
+}
+
+/* Sad hearts */
+.sad-heart {
+  position: absolute;
+  top: -40px;
+  font-size: 22px;
+  opacity: 0.8;
+  animation: fallDown linear infinite;
+}
+@keyframes fallDown {
+  to { transform: translateY(110vh); opacity: 0; }
+}
+
+/* Firecrackers */
+.firework {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: gold;
+  border-radius: 50%;
+  animation: explode 1s ease-out forwards;
+}
+@keyframes explode {
+  to { transform: translate(var(--x), var(--y)); opacity: 0; }
+}
+
+/* Watermark */
+.watermark {
+  position: fixed;
+  bottom: 12px;
+  right: 18px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 600;
+  pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="watermark">Created by The Bear 🐻</div>
+
+<!-- NAME CARD -->
+<div class="card" id="nameCard">
+  <h2>Please enter your name 😊</h2>
+  <input id="nameInput" placeholder="Enter your name"
+         style="padding:10px;width:90%;font-size:16px">
+  <br><br>
+  <button class="continueBtn" onclick="start()">Continue ❤️</button>
+</div>
+
+<!-- QUESTION CARD -->
+<div class="card hidden" id="mainCard">
+  <h1 id="question"></h1>
+    <img src="https://thumbs.dreamstime.com/b/adorable-panda-cub-holding-red-roses-heart-bokeh-background-th-february-happy-valentine-s-day-356847431.jpg?w=992">
+
+  <div class="buttons">
+    <button id="yesBtn">YES 😍</button>
+    <button id="noBtn">NO 😢</button>
+  </div>
+</div>
+
+<!-- RESULT CARD -->
+<div class="card hidden" id="resultCard">
+  <h1 id="resultText"></h1>
+
+  <!-- SUCCESS GIF (YES ONLY) -->
+  <img id="successGif"
+       src="https://i.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif"
+       class="hidden">
+
+  <button class="shareBtn" id="shareBtn">
+    Share on WhatsApp 💌
+  </button>
+</div>
+
+<script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbycQZjCs5KD-b0lKcOPirfbGGhDeQSlbFvWmIxUjzfdiIQaIJAJEitECtmoBQtHoVv1/exec";
+
+const nameCard = document.getElementById("nameCard");
+const mainCard = document.getElementById("mainCard");
+const resultCard = document.getElementById("resultCard");
+const nameInput = document.getElementById("nameInput");
+const question = document.getElementById("question");
+const resultText = document.getElementById("resultText");
+const successGif = document.getElementById("successGif");
+const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
+const shareBtn = document.getElementById("shareBtn");
+
+let userName = "";
+let finalResponse = "";
+let submitted = false;
+
+/* SAVE RESPONSE */
+function saveResponse(response) {
+  if (submitted) return;
+  submitted = true;
+
+  fetch(SHEET_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      name: userName,
+      response: response
+    })
+  });
+}
+
+function start() {
+  userName = nameInput.value || "Someone";
+  nameCard.classList.add("hidden");
+  mainCard.classList.remove("hidden");
+  question.innerText = `Hey ${userName}, will you be my Valentine? 💖`;
+}
+
+/* YES FLOW */
+yesBtn.addEventListener("click", () => {
+  finalResponse = "YES";
+  saveResponse("YES");
+
+  mainCard.classList.add("hidden");
+  resultCard.classList.remove("hidden");
+
+  resultText.innerText =
+    `Yayyy ${userName} ❤️🎉 You are my Valentine!`;
+
+  successGif.classList.remove("hidden");
+
+  happyHearts();
+  fireCrackers();
+});
+
+/* NO FLOW */
+noBtn.addEventListener("click", () => {
+  finalResponse = "NO";
+  saveResponse("NO");
+
+  mainCard.classList.add("hidden");
+  resultCard.classList.remove("hidden");
+
+  successGif.classList.add("hidden");
+
+  resultText.innerText =
+    `That’s okay ${userName} 🥲✨
+    Some things are meant to stay beautiful just as they are.`;
+
+  sadHearts();
+});
+
+/* HAPPY HEARTS */
+function happyHearts() {
+  setInterval(() => {
+    const h = document.createElement("div");
+    h.className = "heart";
+    h.innerText = "❤️";
+    h.style.left = Math.random() * 100 + "vw";
+    h.style.animationDuration = 4 + Math.random() * 3 + "s";
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 7000);
+  }, 400);
+}
+
+/* FIRECRACKERS */
+function fireCrackers() {
+  setInterval(() => {
+    for (let i = 0; i < 25; i++) {
+      const f = document.createElement("div");
+      f.className = "firework";
+      f.style.left = Math.random() * 100 + "vw";
+      f.style.top = Math.random() * 100 + "vh";
+      f.style.setProperty("--x", `${Math.random()*300-150}px`);
+      f.style.setProperty("--y", `${Math.random()*300-150}px`);
+      document.body.appendChild(f);
+      setTimeout(() => f.remove(), 1000);
+    }
+  }, 1200);
+}
+
+/* SAD HEARTS */
+function sadHearts() {
+  setInterval(() => {
+    const s = document.createElement("div");
+    s.className = "sad-heart";
+    s.innerText = "💔";
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.animationDuration = 4 + Math.random() * 3 + "s";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 7000);
+  }, 700);
+}
+
+/* SHARE */
+shareBtn.addEventListener("click", async () => {
+  const canvas = await html2canvas(resultCard);
+  const img = canvas.toDataURL("image/png");
+
+  const a = document.createElement("a");
+  a.href = img;
+  a.download = "valentine_result.png";
+  a.click();
+
+  const msg =
+    finalResponse === "YES"
+      ? "I said yes ^_^"
+      : "Some things are meant to stay beautiful just as they are. :( ";
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+});
+</script>
+
+</body>
+</html>
